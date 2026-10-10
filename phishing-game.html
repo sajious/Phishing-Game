@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎯 بازی تشخیص فیشینگ</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --accent: #e94560;
+      --safe: #00b894;
+      --warning: #fdcb6e;
+      --text: #f0f0f0;
+      --muted: #888;
+      --glow: rgba(233, 69, 96, 0.3);
+    }
+    
+    body {
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(233, 69, 96, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 184, 148, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(99, 110, 255, 0.06) 0%, transparent 50%);
+      animation: bgShift 20s ease-in-out infinite;
+      z-index: -1;
+    }
+    
+    @keyframes bgShift {
+      0%, 100% { transform: translate(0, 0); }
+      33% { transform: translate(-2%, -3%); }
+      66% { transform: translate(3%, 2%); }
+    }
+    
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    
+    .header { text-align: center; padding: 40px 20px; }
+    .header h1 {
+      font-size: 2.5em; font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), #ff6b8a);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 10px;
+    }
+    .header p { color: var(--muted); font-size: 1.1em; }
+    
+    .stats-bar {
+      display: flex; justify-content: space-around;
+      background: var(--card); border-radius: 16px; padding: 20px;
+      margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .stat { text-align: center; }
+    .stat-value { font-size: 2em; font-weight: 900; color: var(--accent); }
+    .stat-label { font-size: 0.85em; color: var(--muted); margin-top: 4px; }
+    .stat.safe .stat-value { color: var(--safe); }
+    .stat.warn .stat-value { color: var(--warning); }
+    
+    .progress-container {
+      background: var(--card); border-radius: 12px; padding: 4px;
+      margin-bottom: 30px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 6px;
+      background: linear-gradient(90deg, var(--accent), #ff6b8a);
+      border-radius: 12px; transition: width 0.5s ease;
+    }
+    
+    .scenario-card {
+      background: var(--card); border-radius: 20px; padding: 30px;
+      margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);
+      animation: slideUp 0.5s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .scenario-number {
+      display: inline-block; background: var(--accent); color: white;
+      padding: 4px 14px; border-radius: 20px; font-size: 0.85em; font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .scenario-type {
+      display: inline-block; padding: 4px 14px; border-radius: 20px;
+      font-size: 0.8em; margin-right: 10px; font-weight: 500;
+    }
+    .type-email { background: rgba(233, 69, 96, 0.2); color: var(--accent); }
+    .type-sms { background: rgba(253, 203, 110, 0.2); color: var(--warning); }
+    .type-phone { background: rgba(99, 110, 255, 0.2); color: #636eff; }
+    .type-website { background: rgba(0, 184, 148, 0.2); color: var(--safe); }
+    .type-social { background: rgba(255, 165, 0, 0.2); color: orange; }
+    
+    .scenario-message {
+      background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px;
+      margin: 20px 0; font-size: 1em; line-height: 1.8;
+      border-right: 4px solid var(--accent); white-space: pre-wrap;
+    }
+    
+    .scenario-details {
+      background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px;
+      margin-bottom: 15px; font-size: 0.9em; color: var(--muted);
+    }
+    .scenario-details strong { color: var(--text); }
+    
+    .question { font-size: 1.2em; font-weight: 700; margin: 20px 0; text-align: center; }
+    
+    .choices { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    
+    .choice-btn {
+      flex: 1; min-width: 180px; padding: 16px 24px;
+      border: 2px solid rgba(255,255,255,0.1); border-radius: 14px;
+      background: rgba(255,255,255,0.03); color: var(--text);
+      font-family: inherit; font-size: 1em; font-weight: 500;
+      cursor: pointer; transition: all 0.3s ease;
+    }
+    .choice-btn:hover {
+      border-color: var(--accent); background: rgba(233, 69, 96, 0.1);
+      transform: translateY(-2px);
+    }
+    .choice-btn.correct {
+      border-color: var(--safe); background: rgba(0, 184, 148, 0.2);
+      animation: pulse 0.5s ease;
+    }
+    .choice-btn.wrong {
+      border-color: var(--accent); background: rgba(233, 69, 96, 0.2);
+      animation: shake 0.5s ease;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    
+    .feedback {
+      margin-top: 20px; padding: 20px; border-radius: 14px;
+      animation: slideUp 0.3s ease; display: none;
+    }
+    .feedback.show { display: block; }
+    .feedback.correct {
+      background: rgba(0, 184, 148, 0.1);
+      border: 1px solid rgba(0, 184, 148, 0.3);
+    }
+    .feedback.wrong {
+      background: rgba(233, 69, 96, 0.1);
+      border: 1px solid rgba(233, 69, 96, 0.3);
+    }
+    .feedback-icon { font-size: 2em; margin-bottom: 10px; }
+    .feedback-title { font-size: 1.2em; font-weight: 700; margin-bottom: 10px; }
+    .feedback.correct .feedback-title { color: var(--safe); }
+    .feedback.wrong .feedback-title { color: var(--accent); }
+    .feedback-text { color: var(--muted); line-height: 1.8; font-size: 0.95em; }
+    
+    .feedback-red-flags {
+      margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+    }
+    .red-flag {
+      color: var(--warning); font-size: 0.9em; margin: 6px 0;
+      padding-right: 10px; border-right: 3px solid var(--warning);
+    }
+    
+    .next-btn {
+      display: block; width: 100%; max-width: 300px; margin: 25px auto 0;
+      padding: 16px; background: linear-gradient(135deg, var(--accent), #ff6b8a);
+      border: none; border-radius: 14px; color: white;
+      font-family: inherit; font-size: 1.1em; font-weight: 700;
+      cursor: pointer; transition: all 0.3s ease;
+    }
+    .next-btn:hover {
+      transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow);
+    }
+    
+    .start-screen { text-align: center; padding: 60px 20px; }
+    .start-screen h2 { font-size: 1.8em; margin-bottom: 20px; }
+    .start-screen p {
+      color: var(--muted); margin-bottom: 30px; line-height: 1.8; font-size: 1.05em;
+    }
+    .start-btn {
+      padding: 18px 50px; background: linear-gradient(135deg, var(--accent), #ff6b8a);
+      border: none; border-radius: 16px; color: white;
+      font-family: inherit; font-size: 1.3em; font-weight: 700;
+      cursor: pointer; transition: all 0.3s ease;
+    }
+    .start-btn:hover {
+      transform: translateY(-3px); box-shadow: 0 10px 40px var(--glow);
+    }
+    
+    .result-screen { text-align: center; padding: 40px 20px; }
+    .result-emoji { font-size: 5em; margin-bottom: 20px; animation: bounce 1s ease infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+    .result-title { font-size: 2em; font-weight: 900; margin-bottom: 15px; }
+    .result-score { font-size: 3.5em; font-weight: 900; color: var(--accent); margin: 20px 0; }
+    .result-text { color: var(--muted); font-size: 1.1em; margin-bottom: 30px; }
+    
+    .result-tips {
+      text-align: right; background: var(--card); border-radius: 16px;
+      padding: 25px; margin: 30px 0; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .result-tips h3 { margin-bottom: 15px; color: var(--warning); }
+    .result-tips li {
+      margin: 10px 0; padding: 8px 12px; background: rgba(0,0,0,0.2);
+      border-radius: 8px; list-style: none; font-size: 0.95em;
+      border-right: 3px solid var(--safe);
+    }
+    
+    .restart-btn {
+      padding: 18px 50px; background: linear-gradient(135deg, var(--safe), #2ecc71);
+      border: none; border-radius: 16px; color: white;
+      font-family: inherit; font-size: 1.2em; font-weight: 700;
+      cursor: pointer; transition: all 0.3s ease; margin-top: 20px;
+    }
+    .restart-btn:hover {
+      transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 184, 148, 0.3);
+    }
+    
+    .timer-container {
+      display: flex; align-items: center; gap: 10px;
+      margin: 15px 0; justify-content: center;
+    }
+    .timer-icon { font-size: 1.3em; }
+    .timer-bar {
+      flex: 1; height: 8px; background: rgba(255,255,255,0.1);
+      border-radius: 4px; overflow: hidden; max-width: 300px;
+    }
+    .timer-fill {
+      height: 100%; background: linear-gradient(90deg, var(--safe), var(--warning), var(--accent));
+      border-radius: 4px; transition: width 0.1s linear;
+    }
+    .timer-text { font-weight: 700; font-size: 1.1em; min-width: 40px; }
+    .timer-text.urgent { color: var(--accent); animation: blink 0.5s ease infinite; }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    .streak {
+      text-align: center; margin: 10px 0; font-weight: 700;
+      color: var(--warning); opacity: 0; transition: opacity 0.3s ease;
+    }
+    .streak.show { opacity: 1; }
+    
+    @media (max-width: 600px) {
+      .header h1 { font-size: 1.8em; }
+      .stats-bar { flex-direction: row; gap: 10px; }
+      .stat-value { font-size: 1.5em; }
+      .choice-btn { min-width: 140px; padding: 12px 16px; }
+      .result-score { font-size: 2.5em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎯 تشخیص فیشینگ</h1>
+      <p>آیا می‌تونی پیام‌های فیشینگ رو از اصلی تشخیص بدی؟</p>
+    </div>
+    
+    <!-- Start Screen -->
+    <div id="startScreen" class="start-screen">
+      <h2>🕵️ مأموریت تو اینه:</h2>
+      <p>
+        تو ۱۰ سناریو قراره پیام‌هایی ببینی — ممکنه ایمیل، پیامک، تماس تلفنی یا پیغام شبکه اجتماعی باشه.<br>
+        باید تصمیم بگیری: <strong>این پیام فیشینگه یا نه؟</strong><br><br>
+        ⏱️ برای هر سوال ۱۵ ثانیه وقت داری<br>
+        ✅ جواب درست: ۱۰ امتیاز<br>
+        ⚡ جواب درست سریع: ۵ امتیاز اضافه<br>
+        🔥 جواب‌های درست متوالی: ۳ امتیاز جایزه<br><br>
+        <em>آماده‌ای مهارتت رو بسنجی؟</em>
+      </p>
+      <button class="start-btn" onclick="startGame()">🚀 شروع بازی</button>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="gameScreen" style="display: none;">
+      <div class="stats-bar">
+        <div class="stat">
+          <div class="stat-value" id="score">۰</div>
+          <div class="stat-label">امتیاز</div>
+        </div>
+        <div class="stat safe">
+          <div class="stat-value" id="correct">۰</div>
+          <div class="stat-label">درست</div>
+        </div>
+        <div class="stat warn">
+          <div class="stat-value" id="wrong">۰</div>
+          <div class="stat-label">نادرست</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="streak">۰</div>
+          <div class="stat-label">متوالی 🔥</div>
+        </div>
+      </div>
+      
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      
+      <div id="streakDisplay" class="streak"></div>
+      
+      <div class="scenario-card" id="scenarioCard">
+        <div>
+          <span class="scenario-number" id="scenarioNumber"></span>
+          <span class="scenario-type" id="scenarioType"></span>
+        </div>
+        
+        <div class="scenario-details" id="scenarioDetails"></div>
+        <div class="scenario-message" id="scenarioMessage"></div>
+        
+        <div class="timer-container">
+          <span class="timer-icon">⏱️</span>
+          <div class="timer-bar">
+            <div class="timer-fill" id="timerFill" style="width: 100%"></div>
+          </div>
+          <span class="timer-text" id="timerText">۱۵</span>
+        </div>
+        
+        <div class="question" id="question"></div>
+        
+        <div class="choices" id="choices"></div>
+        
+        <div class="feedback" id="feedback">
+          <div class="feedback-icon" id="feedbackIcon"></div>
+          <div class="feedback-title" id="feedbackTitle"></div>
+          <div class="feedback-text" id="feedbackText"></div>
+          <div class="feedback-red-flags" id="redFlags" style="display: none;">
+            <strong>🚩 پرچم‌های قرمز:</strong>
+            <div id="redFlagList"></div>
+          </div>
+        </div>
+        
+        <button class="next-btn" id="nextBtn" style="display: none;" onclick="nextScenario()">
+          سناریوی بعدی ➡️
+        </button>
+      </div>
+    </div>
+    
+    <!-- Result Screen -->
+    <div id="resultScreen" style="display: none;"></div>
+  </div>
+  
+  <script>
+    function toPersian(num) {
+      const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+      return String(num).replace(/[0-9]/g, d => persianDigits[d]);
+    }
+    
+    const scenarios = [
+      {
+        type: 'email', typeName: '📧 ایمیل',
+        details: { from: 'support@iran-bank-security.com', subject: 'فوری: حساب شما مسدود خواهد شد!' },
+        message: `سلام کاربر گرامی,
+
+با سلام به اطلاع می‌رساند به دلیل عدم تأیید اطلاعات هویتی تا ۴۸ ساعت آینده حساب شما مسدود خواهد شد.
+
+لطفاً برای حفظ حساب خود، روی لینک زیر کلیک کنید و اطلاعات خود را تأیید نمایید:
+http://iran-bank-security.com/verify?id=84729
+
+با تشکر
+بانک ایران`,
+        question: '🤔 این ایمیل فیشینگ است یا امن؟',
+        correct: 'phishing',
+        feedback: 'این ایمیل فیشینگ است!',
+        explanation: 'سازمان‌های واقعی هرگز از طریق ایمیل از شما نمی‌خواهند اطلاعات حساس وارد کنید.',
+        redFlags: [
+          'آدرس ایمیل جعلی: iran-bank-security.com ≠ آدرس رسمی بانک',
+          'فوریت ساختگی: «مسدود خواهد شد» برای ایجاد وحشت',
+          'لینک مشکوک: سایت تأیید جعلی',
+          'عمومی بودن خطاب: «کاربر گرامی» به جای نام شما',
+          'هیچ بانکی رمز عبور یا اطلاعات کارت را ایمیلی نمی‌خواهد'
+        ]
+      },
+      {
+        type: 'sms', typeName: '💬 پیامک',
+        details: { from: 'نامشخص', time: '۱۰:۳۲ صبح' },
+        message: 'سلام. بسته شما آماده تحویل است. برای تعیین وقت تحویل روی لینک زیر کلیک کنید:\nhttps://post-service-deliver.ir/track?code=KL8842',
+        question: '🤔 این پیامک فیشینگ است یا امن؟',
+        correct: 'phishing',
+        feedback: 'این پیامک فیشینگ است!',
+        explanation: 'شرکت‌های پستی معمولاً با شماره کوتاه (مثل ۳۰۰۰) پیامک می‌فرستند، نه شماره ناشناس.',
+        redFlags: [
+          'ارسال‌کننده ناشناس',
+          'لینک دامنه غیرمعمول: post-service-deliver.ir',
+          'لینک‌های پستی معمولاً شماره کوتاه دارند',
+          'کد رهگیری طولانی و پیچیده',
+          'فشار برای اقدام فوری بدون پرس‌وجو'
+        ]
+      },
+      {
+        type: 'website', typeName: '🌐 وب‌سایت',
+        details: { url: 'https://www.app1e.com/account/login', security: 'قفل 🔒 فعال (SSL)' },
+        message: 'شما وارد سایت https://www.app1e.com/account/login شده‌اید.\n\nاین سایت ادعا می‌کند نسخه رسمی اپل است و برای خرید با ۸۰٪ تخفیف، باید اپل آیدی خود را وارد کنید.',
+        question: '🤔 این وب‌سایت فیشینگ است یا رسمی؟',
+        correct: 'phishing',
+        feedback: 'این وب‌سایت فیشینگ است!',
+        explanation: 'آدرس رسمی اپل apple.com است. app1e.com یک دامنه جعلی است.',
+        redFlags: [
+          'دامنه جعلی: app1e.com به جای apple.com (تقلب حروف)',
+          'تخفیف ۸۰٪: تخفیف‌های بزرگ غیرمنطقی',
+          'درخواست اپل آیدی و رمز عبور',
+          'قفل SSL نشانه امنیت نیست',
+          'سایت‌های رسمی اپل هرگز این‌گونه تبلیغ نمی‌کنند'
+        ]
+      },
+      {
+        type: 'phone', typeName: '📞 تماس تلفنی',
+        details: { from: 'شماره ناشناس', caller: 'ادعای پشتیبانی دیجی‌کالا' },
+        message: 'تماس تلفنی:\n\n«سلام، من از پشتیبانی دیجی‌کالا تماس می‌گیرم. مشاهده شده که از کارت بانکی شما خریدهای مشکوکی انجام شده. لطفاً شماره کارت و رمز پویا را بفرمایید تا مشکلتان حل شود.»',
+        question: '🤔 آیا این تماس فیشینگ است یا امن؟',
+        correct: 'phishing',
+        feedback: 'این تماس فیشینگ است!',
+        explanation: 'هیچ شرکت معتبری از شما رمز پویا یا اطلاعات کارت را تلفنی نمی‌خواهد.',
+        redFlags: [
+          'درخواست رمز پویا: هیچ شرکتی رمز پویا تلفنی نمی‌خواهد',
+          'ایجاد ترس: «خریدهای مشکوک»',
+          'شماره ناشناس',
+          'فشار برای پاسخ فوری',
+          'پشتیبانی واقعی هرگز اطلاعات حساس نمی‌خواهد'
+        ]
+      },
+      {
+        type: 'social', typeName: '📱 شبکه اجتماعی',
+        details: { from: '@sara_ahmadi_support', platform: 'اینستاگرام' },
+        message: 'پیام مستقیم (DM) اینستاگرام:\n\n«سلام! اکانت شما انتخاب شده 🎉\n\nشما برنده آیفون ۱۵ پرو مکس شدید! فقط کافیه فرم زیر رو پر کنی:\nhttps://apple-giveaway.ir/claim\n\nمحدود: ۲۴ ساعت»',
+        question: '🤔 این پیام فیشینگ است یا واقعی؟',
+        correct: 'phishing',
+        feedback: 'این پیام فیشینگ است!',
+        explanation: 'هیچ برند معتبری در دایرکت اینستاگرام قرعه‌کشی نمی‌کند.',
+        redFlags: [
+          'جایزه بی‌دلیل: هیچ‌کس بدون شرکت در قرعه‌کشی برنده نمی‌شود',
+          'دامنه جعلی: apple-giveaway.ir',
+          'فوریت ساختگی: «۲۴ ساعت»',
+          'برنده شدن در دایرکت: روش رایج فیشینگ',
+          'نام کاربری مشکوک: @sara_ahmadi_support'
+        ]
+      },
+      {
+        type: 'email', typeName: '📧 ایمیل',
+        details: { from: 'notifications@github.com', subject: 'New sign-in from Chrome on Windows' },
+        message: `Hi user,\n\nWe noticed a new sign-in to your GitHub account.\n\nDevice: Chrome on Windows\nLocation: Tehran, Iran\nTime: Oct 10, 2026 09:15 AM\n\nIf this was you, no action needed.\nIf you don't recognize this activity, secure your account:\nhttps://github.com/settings/security\n\nBest,\nGitHub Security Team`,
+        question: '🤔 این ایمیل فیشینگ است یا امن؟',
+        correct: 'safe',
+        feedback: 'این ایمیل امن است!',
+        explanation: 'گیت‌هاب به طور منظم اعلان‌های ورود ارسال می‌کند و لینک به دامنه اصلی github.com اشاره دارد.',
+        redFlags: []
+      },
+      {
+        type: 'sms', typeName: '💬 پیامک',
+        details: { from: '3000', time: '۱۴:۲۰ بعدازظهر' },
+        message: 'بانک ملت: موجودی حساب جاری شما معادل ۱۵,۲۳۰,۰۰۰ ریال می‌باشد. برای مشاهده جزئیات به همراهگاه بانک ملت مراجعه نمایید.',
+        question: '🤔 این پیامک فیشینگ است یا امن؟',
+        correct: 'safe',
+        feedback: 'این پیامک امن است!',
+        explanation: 'پیامک اطلاع‌رسانی موجودی از شماره کوتاه ۳۰۰۰ (شماره رسمی بانک ملت) ارسال شده.',
+        redFlags: []
+      },
+      {
+        type: 'website', typeName: '🌐 وب‌سایت',
+        details: { url: 'https://pay.google.com/gc/ad', security: 'قفل 🔒 فعال (SSL)' },
+        message: 'شما وارد سایت https://pay.google.com/gc/ad شده‌اید.\n\nاین صفحه ادعا می‌کند که حساب گوگل شما پر شده و باید اطلاعات کارت بانکی جدید وارد کنید.',
+        question: '🤔 آیا این آدرس معتبر است؟',
+        correct: 'phishing',
+        feedback: 'این وب‌سایت فیشینگ است!',
+        explanation: 'آدرس pay.google.com می‌تواند معتبر باشد، اما گوگل هرگز از شما کارت بانکی برای «پر شدن حساب» نمی‌خواهد. چک کنید آیا واقعاً pay.google.com است یا چیزی شبیه pay-gooogle.com.',
+        redFlags: [
+          'گوگل هرگز درخواست «پر شدن حساب» نمی‌کند',
+          'آدرس را دقیق چک کنید: pay-google.com ≠ pay.google.com',
+          'گوگل از طریق صفحه وب رمز عبور درخواست نمی‌کند',
+          'تکنیک «فضای پر شده» برای فریب کاربر'
+        ]
+      },
+      {
+        type: 'social', typeName: '📱 شبکه اجتماعی',
+        details: { from: '@ali_reza_tech', platform: 'تلگرام' },
+        message: 'پیام تلگرام:\n\n«سلام دوست عزیز 👋\n\nمن ۳ ساله تو این کانال هستم.\nyه ربات فوق‌العاده پیدا کردم که روزی ۲ میلیون تومان سود میده! 🤑\n\nلینک: t.me/crypto_earn_bot\nفقط ۱۰۰ نفر اول جایزه ویژه می‌گیرن!»',
+        question: '🤔 این پیام فیشینگ است یا واقعی؟',
+        correct: 'phishing',
+        feedback: 'این پیام فیشینگ است!',
+        explanation: 'هیچ ربات تلگرامی با «سود روزی ۲ میلیون» واقعی نیست. این کلاهبرداری پانزی است.',
+        redFlags: [
+          'سود نجومی: «روزانه ۲ میلیون»',
+          'ربات ناشناس: t.me/crypto_earn_bot',
+          'آشنای جعلی: «۳ ساله تو کانال هستم»',
+          'کمبود ساختگی: «فقط ۱۰۰ نفر اول»',
+          'سرمایه‌گذاری با سود تضمینی: کلاهبرداری'
+        ]
+      },
+      {
+        type: 'email', typeName: '📧 ایمیل',
+        details: { from: 'noreply@digikala.com', subject: 'سفارش شما ارسال شد #DK-1847293' },
+        message: `سلام,\n\nسفارش شماره #DK-1847293 شما ارسال شد.\n\nجزئیات:\n- کیس مک‌بوک پرو ۱۶ اینچ\n- هدست سونی WH-1000XM5\n\nمبلغ: ۴۵,۰۰۰,۰۰۰ ریال\nوضعیت: پرداخت شده\n\nپیگیری سفارش:\nhttps://www.digikala.com/order/tracking?order=DK-1847293\n\nبا تشکر\nدیجی‌کالا`,
+        question: '🤔 این ایمیل فیشینگ است یا امن؟',
+        correct: 'safe',
+        feedback: 'این ایمیل امن است!',
+        explanation: 'ایمیل از noreply@digikala.com ارسال شده، لینک به digikala.com اشاره دارد و اطلاعات سفارش مشخص است.',
+        redFlags: []
+      }
+    ];
+    
+    let currentScenario = 0;
+    let score = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let streak = 0;
+    let maxStreak = 0;
+    let timerInterval = null;
+    let timeLeft = 15;
+    
+    function startGame() {
+      document.getElementById('startScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+      currentScenario = 0;
+      score = 0;
+      correctCount = 0;
+      wrongCount = 0;
+      streak = 0;
+      maxStreak = 0;
+      loadScenario();
+    }
+    
+    function loadScenario() {
+      if (currentScenario >= scenarios.length) {
+        showResults();
+        return;
+      }
+      
+      const s = scenarios[currentScenario];
+      
+      document.getElementById('progressBar').style.width = ((currentScenario) / scenarios.length * 100) + '%';
+      document.getElementById('scenarioNumber').textContent = `سناریو ${toPersian(currentScenario + 1)} از ${toPersian(scenarios.length)}`;
+      
+      const typeEl = document.getElementById('scenarioType');
+      typeEl.textContent = s.typeName;
+      typeEl.className = 'scenario-type type-' + s.type;
+      
+      let detailsHtml = '';
+      for (const [key, value] of Object.entries(s.details)) {
+        const labels = {
+          from: '📤 ارسال‌کننده', subject: '📋 موضوع', time: '🕐 زمان',
+          url: '🔗 آدرس', security: '🔒 امنیت', platform: '📱 پلتفرم', caller: '👤 مدعی'
+        };
+        detailsHtml += `<strong>${labels[key] || key}:</strong> ${value}<br>`;
+      }
+      document.getElementById('scenarioDetails').innerHTML = detailsHtml;
+      document.getElementById('scenarioMessage').textContent = s.message;
+      document.getElementById('question').textContent = s.question;
+      
+      document.getElementById('choices').innerHTML = `
+        <button class="choice-btn" onclick="makeChoice('phishing')">🚨 فیشینگ</button>
+        <button class="choice-btn" onclick="makeChoice('safe')">✅ امن</button>
+      `;
+      
+      document.getElementById('feedback').className = 'feedback';
+      document.getElementById('feedback').style.display = 'none';
+      document.getElementById('nextBtn').style.display = 'none';
+      
+      startTimer();
+      
+      document.getElementById('scenarioCard').style.animation = 'none';
+      setTimeout(() => {
+        document.getElementById('scenarioCard').style.animation = 'slideUp 0.5s ease';
+      }, 10);
+    }
+    
+    function startTimer() {
+      timeLeft = 15;
+      const timerFill = document.getElementById('timerFill');
+      const timerText = document.getElementById('timerText');
+      
+      timerFill.style.width = '100%';
+      timerText.textContent = toPersian(timeLeft);
+      timerText.className = 'timer-text';
+      
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft -= 0.1;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          clearInterval(timerInterval);
+          timeUp();
+        }
+        
+        const percent = (timeLeft / 15) * 100;
+        timerFill.style.width = percent + '%';
+        timerText.textContent = toPersian(Math.ceil(timeLeft));
+        
+        if (timeLeft <= 5) {
+          timerText.className = 'timer-text urgent';
+        }
+      }, 100);
+    }
+    
+    function timeUp() {
+      wrongCount++;
+      streak = 0;
+      updateStats();
+      
+      const s = scenarios[currentScenario];
+      showFeedback(false, s);
+    }
+    
+    function makeChoice(choice) {
+      clearInterval(timerInterval);
+      
+      const s = scenarios[currentScenario];
+      const isCorrect = choice === s.correct;
+      
+      const buttons = document.querySelectorAll('.choice-btn');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.pointerEvents = 'none';
+      });
+      
+      if (isCorrect) {
+        correctCount++;
+        streak++;
+        if (streak > maxStreak) maxStreak = streak;
+        
+        const timeBonus = timeLeft > 10 ? 5 : 0;
+        const streakBonus = streak >= 3 ? 3 : 0;
+        score += 10 + timeBonus + streakBonus;
+        
+        buttons.forEach(btn => {
+          if ((choice === 'phishing' && btn.textContent.includes('فیشینگ')) ||
+              (choice === 'safe' && btn.textContent.includes('امن'))) {
+            btn.classList.add('correct');
+          }
+        });
+        
+        const streakEl = document.getElementById('streakDisplay');
+        if (streak >= 2) {
+          streakEl.textContent = `🔥 ${toPersian(streak)} جواب درست متوالی!`;
+          streakEl.className = 'streak show';
+        }
+      } else {
+        wrongCount++;
+        streak = 0;
+        
+        buttons.forEach(btn => {
+          if ((choice === 'phishing' && btn.textContent.includes('فیشینگ')) ||
+              (choice === 'safe' && btn.textContent.includes('امن'))) {
+            btn.classList.add('wrong');
+          }
+          if ((s.correct === 'phishing' && btn.textContent.includes('فیشینگ')) ||
+              (s.correct === 'safe' && btn.textContent.includes('امن'))) {
+            btn.classList.add('correct');
+          }
+        });
+        
+        document.getElementById('streakDisplay').className = 'streak';
+      }
+      
+      updateStats();
+      showFeedback(isCorrect, s);
+    }
+    
+    function showFeedback(isCorrect, s) {
+      const feedback = document.getElementById('feedback');
+      const icon = document.getElementById('feedbackIcon');
+      const title = document.getElementById('feedbackTitle');
+      const text = document.getElementById('feedbackText');
+      const redFlags = document.getElementById('redFlags');
+      const redFlagList = document.getElementById('redFlagList');
+      
+      feedback.style.display = 'block';
+      feedback.className = `feedback show ${isCorrect ? 'correct' : 'wrong'}`;
+      
+      icon.textContent = isCorrect ? '✅' : '❌';
+      title.textContent = isCorrect ? 'آفرین! درست تشخیص دادی!' : 'اشتباه بود!';
+      
+      let textHtml = s.explanation;
+      if (!isCorrect) {
+        textHtml += `<br><br><strong>جواب درست: ${s.correct === 'phishing' ? '🚨 فیشینگ' : '✅ امن'}</strong>`;
+      }
+      text.innerHTML = textHtml;
+      
+      if (s.redFlags.length > 0) {
+        redFlags.style.display = 'block';
+        redFlagList.innerHTML = s.redFlags.map(flag => 
+          `<div class="red-flag">🚩 ${flag}</div>`
+        ).join('');
+      } else {
+        redFlags.style.display = 'none';
+      }
+      
+      document.getElementById('nextBtn').style.display = 'block';
+    }
+    
+    function updateStats() {
+      document.getElementById('score').textContent = toPersian(score);
+      document.getElementById('correct').textContent = toPersian(correctCount);
+      document.getElementById('wrong').textContent = toPersian(wrongCount);
+      document.getElementById('streak').textContent = toPersian(streak);
+    }
+    
+    function nextScenario() {
+      currentScenario++;
+      loadScenario();
+    }
+    
+    function showResults() {
+      clearInterval(timerInterval);
+      document.getElementById('gameScreen').style.display = 'none';
+      document.getElementById('resultScreen').style.display = 'block';
+      
+      const total = correctCount + wrongCount;
+      const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+      
+      let emoji, title, tips;
+      
+      if (percentage >= 90) {
+        emoji = '🏆';
+        title = 'تو یک متخصص امنیت سایبری هستی!';
+        tips = [
+          'تو تقریباً همه تله‌های فیشینگ رو می‌شناسی!',
+          'مواظب باش — کلاهبردارها هم همیشه در حال یادگیری هستند',
+          'به دوستات هم این دانش رو یاد بده!',
+          'بهترین دفاع: همیشه شک کن، حتی وقتی همه چیز عادی به نظر می‌رسه'
+        ];
+      } else if (percentage >= 70) {
+        emoji = '👏';
+        title = 'خیلی خوب بود!';
+        tips = [
+          'تو اکثر موارد رو درست تشخیص دادی',
+          'به پرچم‌های قرمز توجه کن: فوریت، لینک‌های مشکوک، اطلاعات شخصی',
+          'اگه چیزی عجیب بود، شک کن!',
+          'لینک‌ها رو قبل کلیک هاور کن و آدرس رو چک کن'
+        ];
+      } else if (percentage >= 50) {
+        emoji = '💪';
+        title = 'شروع خوبی بود!';
+        tips = [
+          'نصف موارد رو درست تشخیص دادی',
+          'تمرکزت رو بذار روی: آدرس ایمیل ارسال‌کننده، آدرس لینک‌ها، فوریت ساختگی',
+          'هیچ‌وقت اطلاعات حساس رو از طریق ایمیل/پیامک وارد نکن',
+          'با شرکت‌ها تماس بگیر و شماره رسمی رو چک کن'
+        ];
+      } else {
+        emoji = '📚';
+        title = 'باید بیشتر تمرین کنی!';
+        tips = [
+          'نگران نباش — این مهارت با تمرین بهتر میشه',
+          'هرگز روی لینک‌های ناشناس کلیک نکن',
+          'شماره کوتاه و رسمی شرکت‌ها رو ذخیره کن',
+          'اگه پیامی فوری و ترسناکه، ۹۹٪ فیشینگه',
+          'اطلاعات حساس (رمز، کارت، OTP) رو هیچ‌وقت به کسی نده'
+        ];
+      }
+      
+      document.getElementById('resultScreen').innerHTML = `
+        <div class="result-screen">
+          <div class="result-emoji">${emoji}</div>
+          <div class="result-title">${title}</div>
+          <div class="result-score">${toPersian(score)} امتیاز</div>
+          <p class="result-text">
+            ${toPersian(correctCount)} درست از ${toPersian(total)} سوال
+            (${toPersian(percentage)}٪)
+            ${maxStreak >= 3 ? `<br>🔥 حداکثر متوالی: ${toPersian(maxStreak)}` : ''}
+          </p>
+          
+          <div class="result-tips">
+            <h3>🛡️ نکات طلایی امنیت:</h3>
+            ${tips.map(tip => `<li>${tip}</li>`).join('')}
+          </div>
+          
+          <button class="restart-btn" onclick="restartGame()">🔄 بازی دوباره</button>
+        </div>
+      `;
+    }
+    
+    function restartGame() {
+      document.getElementById('resultScreen').style.display = 'none';
+      document.getElementById('resultScreen').innerHTML = '';
+      document.getElementById('startScreen').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
